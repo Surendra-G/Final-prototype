@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Application</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="weather.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Weather Application</h1>
+        <form action="">
+            <div class="form-group">
+                <input type="text" class="form-control" id="city" placeholder="Enter Name of the City">
+                <button type="submit" class="btn">Submit</button> 
+            </div>
+        </form>
+        <div class="weather-container">
+            <div class="weather">
+                <div class="weather-icon"></div>
+                <div class="weather-info">
+                    <div>
+                    <div class="city-name"></div>
+                    <div class="temp"></div>
+                    <div class="weather-description"></div>
+                    <div class="date"></div>
+                </div>
+                <div class="weather-info1">
+                <div>
+                    <div class="humidity"></div>
+                    <div class="wind"></div>
+                    <div class="pressure"></div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div> <br>
+    <div class="past-data"></div>
+    <button type="submit" class="btn" >Past Data</button> 
+    </div>
+    <script src="weather.js"></script>
+</body>
+</html>
