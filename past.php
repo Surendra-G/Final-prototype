@@ -1,4 +1,5 @@
 <?php
+
 $servername = "localhost";
 $username = "root"; // Your MySQL username
 $password = ""; // Your MySQL password
@@ -11,7 +12,7 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$cityParam = $_GET['city'];   //"city" parameter that was passed from the JavaScript code.
+$cityParam = $_GET['city'];
 
 // Loop through the past 6 days (excluding today) and display available data or "N/A"
 $currentDate = strtotime(date('Y-m-d'));

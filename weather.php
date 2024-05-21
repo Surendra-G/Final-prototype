@@ -1,8 +1,9 @@
 <?php
+
 $servername = "localhost";
-$username = "root"; //  MySQL username
-$password = ""; //  MySQL password
-$dbname = "weather_surendragiri"; //  new database name
+$username = "root"; // MySQL username
+$password = ""; // MySQL password
+$dbname = "weather_surendragiri"; // Database name
 
 // Read and decode JSON data
 $data = json_decode(file_get_contents("php://input"));
@@ -43,7 +44,7 @@ if ($result->num_rows > 0) {
 } else {
     // Insert the data into the database
     $insertSql = "INSERT INTO weather_data_surendragiri (city, date, temperature, humidity, pressure, wind, description)
-                  VALUES ('$city', NOW(), '$temperature', '$humidity', '$pressure', '$wind', '$description')";
+                VALUES ('$city', NOW(), '$temperature', '$humidity', '$pressure', '$wind', '$description')";
 
     if ($conn->query($insertSql) === TRUE) {
         echo "Data saved successfully";

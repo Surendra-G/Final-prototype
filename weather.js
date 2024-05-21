@@ -1,14 +1,14 @@
 const form = document.querySelector('form');
 const cityInput = document.querySelector('#city');
 const cityName = document.querySelector('.city-name');
-const temp= document.querySelector('.temp');
+const temp = document.querySelector('.temp');
 const dateElement = document.querySelector('.date');
 const weather_description = document.querySelector('.weather-description');
 const humidity = document.querySelector('.humidity');
 const wind = document.querySelector('.wind');
 const pressure = document.querySelector('.pressure');
 const weatherIcon = document.querySelector('.weather-icon');
-const pastDataButton = document.querySelector(".btn");
+const pastDataButton = document.querySelector("#past-data-button");
 const pastDataContainer = document.querySelector('.past-data');
 
 const API_KEY = '61a022f39f51f59d4fec11ef3585f829';
@@ -16,84 +16,107 @@ const API_KEY = '61a022f39f51f59d4fec11ef3585f829';
 // Set the cityInput value to "Carmarthenshire"
 cityInput.value = 'Carmarthenshire';
 
-// Submit the form when the page loads
-window.addEventListener('load', () => {
-  form.dispatchEvent(new Event('submit')); // Dispatch a submit event on the form
-});
-
-form.addEventListener('submit', (e) => {
-    e.preventDefault();  // Prevent form submission
-    const city = cityInput.value;    // Get the value entered in the cityInput field
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`;
-    fetch(url)  // Fetching the weather from the API
-      .then(response => response.json())  //convert the reponse data in to JSON
-      .then(data => {
-        if (data.cod === 200) {  // if success (i.e 200 = success)
-            // updating the HTML with the value
-          const { name, main: { temp: temperature,
-            humidity: humidityValue,
-            pressure: pressureValue,}, 
-          weather: [{ description }], 
-          wind: { speed },
-          dt: timeValue
-        } = data;
-          const weatherIconCode = data.weather[0].icon;  // Get the weather icon code
-          const date = new Date(timeValue * 1000);
-          
-          cityName.textContent = name ;
-          temp.textContent = `${temperature}°C`;
-          weather_description.textContent = description;
-          dateElement.textContent = formatDate(date);
-          humidity.textContent = `Humidity: ${humidityValue}%`;
-          pressure.textContent = `Pressure: ${pressureValue} Pa`;
-          wind.textContent = `Wind Speed: ${speed} m/s`;
-          weatherIcon.innerHTML = `<img src="http://openweathermap.org/img/wn/${weatherIconCode}.png" alt="Weather Icon" >`;
-
-          
-
-        // Call the function to save data to the database
-        saveWeatherDataToDatabase(city, data)
-            .then(response => {
-              console.log(response); // Log the response from the server
-            })
-            .catch(error => {
-              console.error(error);
-            });
-        } else {  // if failed in finding the city, gives City not found as a result
-          cityName.textContent = 'City not found';
-          resetArea();  //reset the weather information
-        }
-      })
-      .catch(error => {
-        console.error(error);
-        cityName.textContent = 'An error occurred, please try again';
-        resetArea();
-      });
-  });
-
-// Function to format the date as "Weekday, Month Day, Year"
-function formatDate(date) {
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const formatedDate = date.toLocaleDateString('en-US', options); //return date in english language
-    return formatedDate;
+// Function to save weather data to local storage
+function saveWeatherDataToLocalStorage(city, data) {
+  const weatherData = {
+    city: city,
+    data: data,
+  };
+  localStorage.setItem(city, JSON.stringify(weatherData));
 }
 
-// Event listener for "Show Past Data" button
-pastDataButton.addEventListener("click", () => {
-  const pastDataContainer = document.querySelector(".past-data");
-  pastDataContainer.innerHTML = "Loading past data...";
+// Function to retrieve weather data from local storage
+function getWeatherDataFromLocalStorage(city) {
+  const weatherDataJSON = localStorage.getItem(city);
+  return JSON.parse(weatherDataJSON);
+}
 
-  fetch("weather.php")
-    .then(response => response.text())
-    .then(data => {
-      pastDataContainer.innerHTML = data;
-    })
-    .catch(error => {
-      pastDataContainer.innerHTML = "Error loading past data.";
-    });
+// Function to update the weather display with saved data
+function updateWeatherDisplay(city, data) {
+    const {
+        main: { temp: temperature, humidity: humidityValue, pressure: pressureValue },
+        weather: [{ description }],
+        wind: { speed },
+        dt: timeValue,
+      } = data;
+      const weatherIconCode = data.weather[0].icon;
+      const date = new Date(timeValue * 1000);
+    
+      cityName.textContent = city;
+      temp.textContent = `${temperature}°C`;
+      weather_description.textContent = description;
+      dateElement.textContent = formatDate(date);
+      humidity.textContent = `Humidity: ${humidityValue}%`;
+      pressure.textContent = `Pressure: ${pressureValue} Pa`;
+      wind.textContent = `Wind Speed: ${speed} m/s`;
+      weatherIcon.innerHTML = `<img src="http://openweathermap.org/img/wn/${weatherIconCode}.png" alt="Weather Icon" >`;
+}
+
+// Function to format the date
+function formatDate(date) {
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const formattedDate = date.toLocaleDateString('en-US', options);
+    return formattedDate;
+}
+
+// Load weather data for default city (Carmarthenshire) on page load
+window.addEventListener('load', () => {
+  const defaultCity = cityInput.value;
+  const storedWeatherData = getWeatherDataFromLocalStorage(defaultCity);
+  if (storedWeatherData) {
+    updateWeatherDisplay(defaultCity, storedWeatherData.data);
+  } else {
+    // Fetch and display weather data for the default city
+    fetchWeatherAndDisplay(defaultCity);
+  }
 });
 
+
+// Fetch weather data, display it, and save to local storage
+function fetchWeatherAndDisplay(city) {
+    const storedWeatherData = getWeatherDataFromLocalStorage(city);
+    if (storedWeatherData) {
+      updateWeatherDisplay(city, storedWeatherData.data);
+    } else {
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`;
+  
+      fetch(url)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('City not found');
+          }
+          return response.json();
+        })
+        .then((data) => {
+          updateWeatherDisplay(city, data);
+          saveWeatherDataToLocalStorage(city, data);
+          saveWeatherDataToDatabase(city, data);
+        })
+        .catch((error) => {
+          console.error(error);
+          cityName.textContent = 'City Not Found';
+          temp.textContent = '';
+          weather_description.textContent = '';
+          dateElement.textContent = '';
+          humidity.textContent = '';
+          pressure.textContent = '';
+          wind.textContent = '';
+          weatherIcon.innerHTML = '';
+        });
+    }
+  }
+  
+
+// Submit the form to fetch weather data
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const city = cityInput.value;
+  fetchWeatherAndDisplay(city);
+});
+
+
 // Save weather data to the local database
+
 function saveWeatherDataToDatabase(city, data) {   // this function helps to save weather data to a database by making an HTTP POST request to a PHP script (weather.php)
     return fetch("weather.php", {
       method: "POST",
@@ -103,18 +126,23 @@ function saveWeatherDataToDatabase(city, data) {   // this function helps to sav
       body: JSON.stringify({ city, data })
     })
       .then(response => response.text())
-      .catch(error => {
+      .catch(error => { 
         throw new Error("Error saving data to the database.");
       });
   }
 
-
-function resetArea(){
-    //clearing all the field 
-    temp.textContent = '';
-    weather_description.textContent = ''; 
-    humidity.textContent = '';
-    wind.textContent = ''; 
-    weatherIcon.innerHTML = '';
-}
-
+// Event listener for "Show Past Data" button
+pastDataButton.addEventListener("click", () => {
+  pastDataContainer.innerHTML = "Loading past data...";
+  
+  const searchedCity = cityInput.value;
+  
+  fetch(`past.php?city=${searchedCity}`)
+    .then(response => response.text())
+    .then(data => {
+      pastDataContainer.innerHTML = data;
+    })
+    .catch(error => {
+      pastDataContainer.innerHTML = "Error loading past data.";
+    });
+});
